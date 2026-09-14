@@ -156,6 +156,17 @@ internal sealed class BinaryChainNode : IASTNode
                 return Arguments[0]; // x * 1
             else if (Operations[0] == BinaryOperation.Divide && Arguments[1] is NumberNode { Value: 1 })
                 return Arguments[0]; // x / 1
+            // if (context.CompileContext.GameContext.OptimizationLevel >= CompilerOptimizationLevel.Experimental) {
+            //     // Probably does nothing, since provably int nodes are most likely constants, which are folded - 
+            //     // There'd need to be a seperate pass to track a variable globally to ensure that it can be an integer
+            //     // TODO: This
+            //     if (Operations[0] == BinaryOperation.Multiply && Arguments[1] is Int64Node { Value: 2 } && Arguments[0] is Int64Node)
+            //     {
+            //         // Convert x * 2 to x << 1, since the latter is equivalent for integer output
+            //         Operations[0] = BinaryOperation.BitwiseShiftLeft;
+            //         Arguments[1] = new NumberNode(1, Arguments[1].NearbyToken);
+            //     }
+            // }
         }
 
 
