@@ -44,6 +44,8 @@ internal sealed class NullishCoalesceNode : IASTNode
     public IASTNode PostProcess(ParseContext context)
     {
         Left = Left.PostProcess(context);
+        if (context.CompileContext.GameContext.OptimizationLevel >= CompilerOptimizationLevel.Safe && Left is IConstantASTNode)
+            return Left; // constants are never nullish
         Right = Right.PostProcess(context);
         return this;
     }
