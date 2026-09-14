@@ -146,6 +146,19 @@ internal sealed class BinaryChainNode : IASTNode
             return Arguments[0];
         }
 
+        if (context.CompileContext.GameContext.OptimizationLevel >= CompilerOptimizationLevel.Safe)
+        {
+            if (Operations[0] == BinaryOperation.Add && Arguments[1] is NumberNode { Value: 0 })
+                return Arguments[0]; // x + 0
+            else if (Operations[0] == BinaryOperation.Subtract && Arguments[1] is NumberNode { Value: 0 })
+                return Arguments[0]; // x - 0
+            else if (Operations[0] == BinaryOperation.Multiply && Arguments[1] is NumberNode { Value: 1 })
+                return Arguments[0]; // x * 1
+            else if (Operations[0] == BinaryOperation.Divide && Arguments[1] is NumberNode { Value: 1 })
+                return Arguments[0]; // x / 1
+        }
+
+
         return this;
     }
 
