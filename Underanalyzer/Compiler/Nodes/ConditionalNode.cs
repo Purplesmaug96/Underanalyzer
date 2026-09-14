@@ -52,6 +52,17 @@ internal sealed class ConditionalNode : IASTNode
         Condition = Condition.PostProcess(context);
         TrueExpression = TrueExpression.PostProcess(context);
         FalseExpression = FalseExpression.PostProcess(context);
+
+        if (context.CompileContext.GameContext.OptimizationLevel >= CompilerOptimizationLevel.Safe)
+        {
+            if (Condition is BooleanNode { Value: bool cond })
+                return (cond ? TrueExpression : FalseExpression).PostProcess(context);
+            if (Condition is NumberNode { Value: double v })
+                return (v > 0.5 ? TrueExpression : FalseExpression).PostProcess(context);
+            if (Condition is Int64Node { Value: long v2 })
+                return (v2 >= 1 ? TrueExpression : FalseExpression).PostProcess(context);
+        }
+
         return this;
     }
 
