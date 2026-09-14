@@ -82,6 +82,14 @@ internal sealed class RepeatLoopNode : IASTNode
 
         // Normal post-processing
         TimesToRepeat = TimesToRepeat.PostProcess(context);
+        if (context.CompileContext.GameContext.OptimizationLevel >= CompilerOptimizationLevel.Safe)
+        {
+            if (TimesToRepeat is NumberNode { Value: 0.0 } or Int64Node { Value: 0 })
+                return EmptyNode.Create(NearbyToken);
+            if (TimesToRepeat is NumberNode { Value: 1.0 } or Int64Node { Value: 1 })
+                return Body.PostProcess(context); // single-iteration unroll
+        }
+
         Body = Body.PostProcess(context);
 
         // Exit repeat context
