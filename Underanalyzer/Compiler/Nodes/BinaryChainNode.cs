@@ -176,6 +176,19 @@ internal sealed class BinaryChainNode : IASTNode
         }
 
         // Perform operation
+        if (context.CompileContext.GameContext.OptimizationLevel >= CompilerOptimizationLevel.Safe) {
+            IConstantASTNode? ret = (operation, left, right) switch
+            {
+                (BinaryOperation.Add, StringNode s, NumberNode n) =>
+                    new StringNode(s.Value + n.Value.ToString(), s.NearbyToken),
+                (BinaryOperation.Add, NumberNode n, StringNode s) =>
+                    new StringNode(n.Value.ToString() + s.Value, n.NearbyToken),
+                _ => null
+            };
+            if (ret != null) return ret;
+        }
+
+        // Perform operation
         return (operation, left, right) switch
         {
             (BinaryOperation.Add, NumberNode leftNumber, NumberNode rightNumber) =>
