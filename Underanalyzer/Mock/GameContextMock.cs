@@ -19,6 +19,8 @@ namespace Underanalyzer.Mock;
 public class GameContextMock : IGameContext
 {
     /// <inheritdoc/>
+    public CompilerOptimizationLevel OptimizationLevel { get; set; } = CompilerOptimizationLevel.GameMaker;
+    /// <inheritdoc/>
     public bool UsingGMS2OrLater { get; set; } = true;
     /// <inheritdoc/>
     public bool UsingGMLv2 { get; set; } = true;

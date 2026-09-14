@@ -39,10 +39,47 @@ public enum AssetType
 }
 
 /// <summary>
+/// Level of code optimization to apply during compilation.
+/// </summary>
+/// <remarks>
+/// Optimizations that preserve byte-for-byte identical output to official GameMaker compilers
+/// are always applied. Additional levels enable progressively more aggressive (and higher-risk)
+/// optimizations on top of that.
+/// </remarks>
+public enum CompilerOptimizationLevel
+{
+    /// <summary>
+    /// Match the optimization behavior of official GameMaker compilers.
+    /// This is the default, and always leaves compilation output byte-for-byte identical to official output.
+    /// </summary>
+    GameMaker,
+
+    /// <summary>
+    /// Apply additional optimizations which are expected to be safe in all scenarios,
+    /// but may deviate from official GameMaker compiler output.
+    /// </summary>
+    Safe,
+
+    /// <summary>
+    /// Apply aggressive optimizations which are expected to be safe in most scenarios,
+    /// but carry some risk of behavioral changes.
+    /// </summary>
+    Experimental
+}
+
+/// <summary>
 /// Interface for managing the data belonging to an individual GameMaker game.
 /// </summary>
 public interface IGameContext
 {
+    /// <summary>
+    /// Level of code optimization to apply during compilation.
+    /// </summary>
+    /// <remarks>
+    /// Should be set before compilation begins, and should not be modified during compilation.
+    /// </remarks>
+    public CompilerOptimizationLevel OptimizationLevel { get; }
+
     /// <summary>
     /// <see langword="true"/> if this game is using GMS2 or above; <see langword="false"/> otherwise.
     /// </summary>
