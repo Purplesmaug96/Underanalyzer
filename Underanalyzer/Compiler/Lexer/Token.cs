@@ -19,6 +19,11 @@ internal interface IToken
     /// Text position of the token within the token's context. Can be used to look up line numbers, for instance.
     /// </summary>
     public int TextPosition { get; }
+
+    /// <summary>
+    /// Length of the token's text within the token's context, in characters.
+    /// </summary>
+    public int TextLength { get; }
 }
 
 /// <summary>
@@ -49,6 +54,9 @@ internal enum SeparatorKind
 /// <param name="Kind">Separator kind for this token.</param>
 internal sealed record TokenSeparator(LexContext Context, int TextPosition, SeparatorKind Kind) : IToken
 {
+    /// <inheritdoc/>
+    public int TextLength => KindToString(Kind).Length;
+
     public static string KindToString(SeparatorKind kind)
     {
         return kind switch
@@ -132,6 +140,9 @@ internal enum OperatorKind
 /// <param name="Kind">Operator kind for this token.</param>
 internal sealed record TokenOperator(LexContext Context, int TextPosition, OperatorKind Kind) : IToken
 {
+    /// <inheritdoc/>
+    public int TextLength => KindToString(Kind).Length;
+
     public static string KindToString(OperatorKind kind)
     {
         return kind switch
@@ -242,6 +253,9 @@ internal enum KeywordKind
 /// <param name="Kind">Keyword kind for this token.</param>
 internal sealed record TokenKeyword(LexContext Context, int TextPosition, KeywordKind Kind) : IToken
 {
+    /// <inheritdoc/>
+    public int TextLength => KindToString(Kind).Length;
+
     public static string KindToString(KeywordKind kind)
     {
         return kind switch
@@ -297,6 +311,9 @@ internal sealed record TokenKeyword(LexContext Context, int TextPosition, Keywor
 /// <param name="Text">Verbatim text used for the identifier.</param>
 internal sealed record TokenIdentifier(LexContext Context, int TextPosition, string Text) : IToken
 {
+    /// <inheritdoc/>
+    public int TextLength => Text.Length;
+
     public override string ToString()
     {
         return Text;
@@ -311,6 +328,9 @@ internal sealed record TokenIdentifier(LexContext Context, int TextPosition, str
 /// <param name="IsConstant">Whether this token came from a constant.</param>
 internal sealed record TokenNumber(LexContext Context, int TextPosition, string Text, double Value, bool IsConstant = false) : IToken
 {
+    /// <inheritdoc/>
+    public int TextLength => Text.Length;
+
     public override string ToString()
     {
         return Text;
@@ -324,6 +344,9 @@ internal sealed record TokenNumber(LexContext Context, int TextPosition, string 
 /// <param name="Value">64-bit integer value.</param>
 internal sealed record TokenInt64(LexContext Context, int TextPosition, string Text, long Value) : IToken
 {
+    /// <inheritdoc/>
+    public int TextLength => Text.Length;
+
     public override string ToString()
     {
         return Text;
@@ -336,6 +359,9 @@ internal sealed record TokenInt64(LexContext Context, int TextPosition, string T
 /// <param name="Value">Boolean value.</param>
 internal sealed record TokenBoolean(LexContext Context, int TextPosition, bool Value) : IToken
 {
+    /// <inheritdoc/>
+    public int TextLength => ToString().Length;
+
     public override string ToString()
     {
         return Value ? "true" : "false";
@@ -349,6 +375,9 @@ internal sealed record TokenBoolean(LexContext Context, int TextPosition, bool V
 /// <param name="Value">String value.</param>
 internal sealed record TokenString(LexContext Context, int TextPosition, string Text, string Value) : IToken
 {
+    /// <inheritdoc/>
+    public int TextLength => Text.Length;
+
     public override string ToString()
     {
         return Text;
@@ -360,6 +389,9 @@ internal sealed record TokenString(LexContext Context, int TextPosition, string 
 /// </summary>
 internal sealed record TokenTemplateStringStart(LexContext Context, int TextPosition) : IToken
 {
+    /// <inheritdoc/>
+    public int TextLength => 2;
+
     public override string ToString()
     {
         return "$\"";
@@ -371,6 +403,9 @@ internal sealed record TokenTemplateStringStart(LexContext Context, int TextPosi
 /// </summary>
 internal sealed record TokenTemplateStringEnd(LexContext Context, int TextPosition) : IToken
 {
+    /// <inheritdoc/>
+    public int TextLength => 1;
+
     public override string ToString()
     {
         return "\"";
@@ -382,6 +417,9 @@ internal sealed record TokenTemplateStringEnd(LexContext Context, int TextPositi
 /// </summary>
 internal sealed record TokenTemplateStringMiddle(LexContext Context, int TextPosition, string Text, string Value) : IToken
 {
+    /// <inheritdoc/>
+    public int TextLength => Text.Length;
+
     public override string ToString()
     {
         return Text;
@@ -395,6 +433,9 @@ internal sealed record TokenTemplateStringMiddle(LexContext Context, int TextPos
 /// <param name="Text">Verbatim text used for the function identifier.</param>
 internal sealed record TokenFunction(LexContext Context, int TextPosition, string Text, IBuiltinFunction? BuiltinFunction) : IToken
 {
+    /// <inheritdoc/>
+    public int TextLength => Text.Length;
+
     public override string ToString()
     {
         return Text;
@@ -411,6 +452,9 @@ internal sealed record TokenVariable : IToken
 
     /// <inheritdoc/>
     public int TextPosition { get; }
+
+    /// <inheritdoc/>
+    public int TextLength => Text.Length;
 
     /// <summary>
     /// Verbatim text used for the variable identifier.
@@ -482,6 +526,9 @@ internal sealed record TokenVariable : IToken
 /// <param name="Text">Verbatim text used for the asset reference identifier.</param>
 internal sealed record TokenAssetReference(LexContext Context, int TextPosition, string Text, int AssetId, bool IsRoomInstanceAsset) : IToken
 {
+    /// <inheritdoc/>
+    public int TextLength => Text.Length;
+
     public override string ToString()
     {
         return Text;

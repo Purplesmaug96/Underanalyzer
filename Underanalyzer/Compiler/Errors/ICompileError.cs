@@ -21,4 +21,14 @@ public interface ICompileError
     /// </summary>
     /// <returns>Generated message</returns>
     public string GenerateMessage();
+
+    /// <summary>
+    /// Attempts to retrieve the position of this error in the source text it originated from.
+    /// Line and column numbers are one-indexed, and width is measured in characters.
+    /// </summary>
+    /// <param name="line">One-indexed line number of the error.</param>
+    /// <param name="column">One-indexed column number of the error.</param>
+    /// <param name="width">Width of the error in characters (at least 1).</param>
+    /// <returns>Whether a position could be determined for this error.</returns>
+    public bool TryGetPosition(out int line, out int column, out int width);
 }

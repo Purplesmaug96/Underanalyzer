@@ -40,4 +40,12 @@ public sealed class LexerError : ICompileError
         }
         return $"{BaseMessage} on line {line}, column {column}";
     }
+
+    /// <inheritdoc/>
+    public bool TryGetPosition(out int line, out int column, out int width)
+    {
+        (line, column) = _lexContext.GetLineAndColumnFromPos(_textPosition);
+        width = 1;
+        return true;
+    }
 }

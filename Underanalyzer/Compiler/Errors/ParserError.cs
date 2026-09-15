@@ -41,4 +41,17 @@ public sealed class ParserError : ICompileError
         }
         return BaseMessage;
     }
+
+    /// <inheritdoc/>
+    public bool TryGetPosition(out int line, out int column, out int width)
+    {
+        if (_nearbyToken is IToken token)
+        {
+            (line, column) = token.Context.GetLineAndColumnFromPos(token.TextPosition);
+            width = token.TextLength;
+            return true;
+        }
+        line = column = width = 0;
+        return false;
+    }
 }
