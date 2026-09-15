@@ -132,6 +132,19 @@ internal sealed class ParseContext : ISubCompileContext
         
         // General post-processing and optimization
         Root = Root?.PostProcess(this);
+
+        if (Root == null) return;
+
+        // Reference counting for local variables, so that:
+        // - locals that are set but never read can have their stores eliminated.
+        // - locals that are read once can simply be inlined.
+        LocalVariableOptimizer.CountReferences(this, Root);
+
+        // Mark eligible locals for inlining, if enabled by the optimization level
+        if (CompileContext.GameContext.OptimizationLevel >= CompilerOptimizationLevel.Safe)
+        {
+            LocalVariableOptimizer.MarkInlinableLocals(this, Root);
+        }
     }
 
     /// <summary>

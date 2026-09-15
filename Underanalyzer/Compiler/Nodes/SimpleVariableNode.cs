@@ -156,6 +156,18 @@ internal sealed class SimpleVariableNode : IAssignableASTNode, IVariableASTNode
     /// <inheritdoc/>
     public void GenerateCode(BytecodeContext context)
     {
+        // If this local variable is being inlined, just generate its constant value
+        // (this is the sole read of a local with a constant initializer).
+        if (ExplicitInstanceType == InstanceType.Local &&
+            context.CompileContext.GameContext.OptimizationLevel >= CompilerOptimizationLevel.Safe &&
+            context.CurrentScope.TryGetLocalReferences(VariableName, out LocalVariableReferences? localRefs) &&
+            localRefs.IsInlined &&
+            localRefs.InlineValue is not null)
+        {
+            localRefs.InlineValue.GenerateCode(context);
+            return;
+        }
+
         // Check if this is a function and generate code accordingly
         IGameContext gameContext = context.CompileContext.GameContext;
         bool isGlobalFunction = context.IsGlobalFunctionName(VariableName);

@@ -111,6 +111,18 @@ internal sealed class AssignNode : IASTNode
         switch (Kind)
         {
             case AssignKind.Normal:
+                // If the destination is a plain local variable that is never read, the store
+                // can be eliminated, while still evaluating the expression for its side effects.
+                if (context.CompileContext.GameContext.OptimizationLevel >= CompilerOptimizationLevel.Safe &&
+                    Destination is SimpleVariableNode { ExplicitInstanceType: InstanceType.Local } destVar &&
+                    context.CurrentScope.TryGetLocalReferences(destVar.VariableName, out LocalVariableReferences? refs) &&
+                    refs.Reads == 0 &&
+                    !ArrayOwners.ContainsNewArrayLiteral(Expression))
+                {
+                    Expression.GenerateCode(context);
+                    context.Emit(Opcode.PopDelete, context.PopDataType());
+                    break;
+                }
                 Expression.GenerateCode(context);
                 Destination.GenerateAssignCode(context);
                 break;

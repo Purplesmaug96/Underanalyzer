@@ -93,6 +93,9 @@ public sealed class FunctionScope(FunctionScope? parent, bool isFunction)
     // Functions declared in this scope (actual entries are assigned during bytecode generation)
     private readonly Dictionary<string, FunctionEntry?> _declaredFunctions = new(4);
 
+    // Reference counts for local variables declared in this scope, used for local variable optimization
+    private readonly Dictionary<string, LocalVariableReferences> _localReferences = new(8);
+
     /// <summary>
     /// Declares a local variable for this function scope.
     /// </summary>
@@ -242,4 +245,79 @@ public sealed class FunctionScope(FunctionScope? parent, bool isFunction)
     {
         return _declaredFunctions.ContainsKey(name);
     }
+
+    /// <summary>
+    /// Records a read of the given local variable in this function scope.
+    /// </summary>
+    /// <param name="name">Name of the local variable being read.</param>
+    /// <param name="readNode">Node performing the read, which must be the sole read for inlining to be possible.</param>
+    internal void IncrementLocalRead(string name, SimpleVariableNode readNode)
+    {
+        if (!_localReferences.TryGetValue(name, out LocalVariableReferences? references))
+        {
+            references = new();
+            _localReferences[name] = references;
+        }
+
+        // Track the sole read location; only useful when exactly one read exists
+        references.Reads++;
+        references.SingleReadNode = references.Reads == 1 ? readNode : null;
+    }
+
+    /// <summary>
+    /// Records a write of the given local variable in this function scope.
+    /// </summary>
+    /// <param name="name">Name of the local variable being written to.</param>
+    internal void IncrementLocalWrite(string name)
+    {
+        if (!_localReferences.TryGetValue(name, out LocalVariableReferences? references))
+        {
+            references = new();
+            _localReferences[name] = references;
+        }
+        references.Writes++;
+    }
+
+    /// <summary>
+    /// Attempts to look up reference count information for the given local variable in this function scope.
+    /// </summary>
+    /// <param name="name">Name of the local variable to look up.</param>
+    /// <param name="references">Reference count information, if found.</param>
+    /// <returns><see langword="true"/> if reference count information was found; <see langword="false"/> otherwise.</returns>
+    internal bool TryGetLocalReferences(string name, [NotNullWhen(true)] out LocalVariableReferences? references)
+    {
+        return _localReferences.TryGetValue(name, out references);
+    }
+}
+
+/// <summary>
+/// Reference count information for a single local variable in a function scope.
+/// </summary>
+internal sealed class LocalVariableReferences
+{
+    /// <summary>
+    /// Number of times the local variable is read.
+    /// </summary>
+    public int Reads { get; internal set; } = 0;
+
+    /// <summary>
+    /// Number of times the local variable is written to.
+    /// </summary>
+    public int Writes { get; internal set; } = 0;
+
+    /// <summary>
+    /// The node performing the sole read of the local variable, if there is exactly one read.
+    /// </summary>
+    public SimpleVariableNode? SingleReadNode { get; internal set; } = null;
+
+    /// <summary>
+    /// If not <see langword="null"/>, this local variable should be inlined: the sole read should be
+    /// replaced by this constant value, and the initializer store should be skipped.
+    /// </summary>
+    public IASTNode? InlineValue { get; internal set; } = null;
+
+    /// <summary>
+    /// Whether this local variable is set to be inlined.
+    /// </summary>
+    public bool IsInlined => InlineValue is not null;
 }

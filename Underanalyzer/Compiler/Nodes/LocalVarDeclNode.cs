@@ -134,6 +134,27 @@ internal sealed class LocalVarDeclNode : IASTNode
         // Generate local variable initial assignments (for ones that have them)
         for (int i = 0; i < AssignedValues.Count; i++)
         {
+            string localName = DeclaredLocals[i];
+
+            // Local variable optimization (only at Safe optimization level and above)
+            if (context.CompileContext.GameContext.OptimizationLevel >= CompilerOptimizationLevel.Safe &&
+                context.CurrentScope.TryGetLocalReferences(localName, out LocalVariableReferences? refs))
+            {
+                if (refs.IsInlined)
+                {
+                    // Local has been inlined; its value is generated at the read site instead
+                    continue;
+                }
+                if (refs.Reads == 0 && AssignedValues[i] is IASTNode deadExpression &&
+                    !ArrayOwners.ContainsNewArrayLiteral(deadExpression))
+                {
+                    // Local is never read: evaluate its initializer for side effects, then discard the result
+                    deadExpression.GenerateCode(context);
+                    context.Emit(Opcode.PopDelete, context.PopDataType());
+                    continue;
+                }
+            }
+
             if (AssignedValues[i] is IASTNode expression)
             {
                 // Handle array copy-on-write
