@@ -90,7 +90,7 @@ public class BuiltinsMock : IBuiltins
     }
 }
 
-public class BuiltinFunctionMock(string name, int minArguments, int maxArguments) : IBuiltinFunction
+public class BuiltinFunctionMock(string name, int minArguments, int maxArguments, bool isPure = false) : IBuiltinFunction
 {
     /// <inheritdoc/>
     public string Name { get; } = name;
@@ -100,6 +100,9 @@ public class BuiltinFunctionMock(string name, int minArguments, int maxArguments
 
     /// <inheritdoc/>
     public int MaxArguments { get; } = maxArguments;
+
+    /// <inheritdoc/>
+    public bool IsPure { get; } = isPure;
 }
 
 public class BuiltinVariableMock(string name, bool canSet = true, bool isGlobal = false, bool isAutomaticArray = false) : IBuiltinVariable

@@ -53,6 +53,12 @@ public interface IBuiltinFunction
     /// Maximum number of arguments allowed for the builtin function.
     /// </summary>
     public int MaxArguments { get; }
+
+    /// <summary>
+    /// Whether or not the builtin function is pure - that is, it has no side effects,
+    /// and its return value depends only on its arguments.
+    /// </summary>
+    public bool IsPure { get; }
 }
 
 /// <summary>

@@ -194,26 +194,6 @@ internal sealed class SimpleFunctionCallNode : IMaybeStatementASTNode
         return result;
     }
 
-    // TODO: Maybe turn this into a utility or something?
-    // TODO: Actually probably better to include an IsPure bool in wherever the table of builtins is
-    // TODO: Maybe in the future this could be extended to normal functions as well, but that would probably be difficult to implement
-    private bool IsBuiltinFunctionPure(IBuiltinFunction? func)
-    {
-        if (func == null)
-        {
-            return false;
-        }
-        switch (func.Name)
-        {
-            // TODO: Add more pure functions
-            case "min":
-            case "max":
-                return true;
-            default:
-                return false;
-        }            
-    }
-
     /// <inheritdoc/>
     public IASTNode PostProcess(ParseContext context)
     {
@@ -222,7 +202,7 @@ internal sealed class SimpleFunctionCallNode : IMaybeStatementASTNode
             Arguments[i] = Arguments[i].PostProcess(context);
         }
 
-        if (context.CompileContext.GameContext.OptimizationLevel >= CompilerOptimizationLevel.Safe && IsStatement && IsBuiltinFunctionPure(BuiltinFunction)) {
+        if (context.CompileContext.GameContext.OptimizationLevel >= CompilerOptimizationLevel.Safe && IsStatement && BuiltinFunction is { IsPure: true }) {
             return EmptyNode.Create(NearbyToken);
         }
 
