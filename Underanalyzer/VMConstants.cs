@@ -57,6 +57,9 @@ internal static class VMConstants
     public const string TryContinueVariable = "__yy_continueEx";
     public const string TryCopyVariable = "copyVar";
 
+    // Variable name prefix used by compiler for temporary locals that hold array values being indexed
+    public const string ArrayTempVariable = "__yy_arrayTemp";
+
     // Function name used to set struct variables (used to de-optimize to be closer to source code)
     public const string StructGetFromHashFunction = "struct_get_from_hash";
 

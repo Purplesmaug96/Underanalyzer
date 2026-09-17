@@ -273,10 +273,56 @@ internal sealed class AccessorNode : IAssignableASTNode
             VariablePatch varPatch = new(variable.VariableName, pushInstanceType, variableType, variable.BuiltinVariable is not null);
             context.Emit(Opcode.Push, varPatch, DataType.Variable);
         }
+        else if (isPop)
+        {
+            // Assigning to an array element of a general expression (such as a function call
+            // result) is not valid GML, so this should not be reached for valid code.
+            throw new Exception("Cannot assign to an array element of a non-variable expression");
+        }
         else
         {
-            throw new Exception("Invalid expression on accessor");
+            // General expression (such as a function call result) producing an array value, that
+            // is not a variable or another accessor. Store the result into a temporary local,
+            // so the array value can be pushed as a normal chained array access below.
+            string tempName = GenerateTempLocalStore(context, Expression);
+            SimpleVariableNode tempVariable = new(tempName, null, InstanceType.Local);
+
+            // Generate common code to prepare for push on the temporary local
+            (InstanceType pushInstanceType, _) = GenerateVariableCode(context, tempVariable);
+
+            // Push chained array value from the temporary local
+            VariablePatch varPatch = new(tempVariable.VariableName, pushInstanceType, VariableType.MultiPush, false);
+            context.Emit(Opcode.Push, varPatch, DataType.Variable);
         }
+    }
+
+    /// <summary>
+    /// Generates code to store the result of a non-variable expression into a new temporary local variable.
+    /// </summary>
+    /// <returns>The name of the temporary local variable that now holds the expression's result.</returns>
+    /// <remarks>
+    /// Used for array accessors on general expressions (such as function call results), which the VM cannot
+    /// index directly. GameMaker itself compiles these by routing the expression's result through a local.
+    /// </remarks>
+    private static string GenerateTempLocalStore(BytecodeContext context, IASTNode expression)
+    {
+        // Generate a unique temporary local name that does not collide with any user-declared local
+        string tempName;
+        int index = 0;
+        do
+        {
+            tempName = $"{VMConstants.ArrayTempVariable}{index}";
+            index++;
+        }
+        while (context.CurrentScope.IsLocalDeclared(tempName));
+        context.CurrentScope.DeclareLocal(tempName);
+
+        // Generate the expression, and store its result into the temporary local
+        expression.GenerateCode(context);
+        VariablePatch varPatch = new(tempName, InstanceType.Local);
+        context.Emit(Opcode.Pop, varPatch, DataType.Variable, context.PopDataType());
+
+        return tempName;
     }
 
     /// <inheritdoc/>
@@ -306,7 +352,19 @@ internal sealed class AccessorNode : IAssignableASTNode
         }
         else
         {
-            throw new Exception("Invalid expression on accessor");
+            // General expression (such as a function call result) that produces an array value, but
+            // is not a variable or another accessor. Store the result into a temporary local, so
+            // the array can be accessed as a normal local variable below.
+            string tempName = GenerateTempLocalStore(context, Expression);
+            SimpleVariableNode tempVariable = new(tempName, null, InstanceType.Local);
+
+            // Generate common code to prepare for push, on the temporary local
+            (InstanceType pushInstanceType, _) = GenerateVariableCode(context, tempVariable);
+
+            // Push array from the temporary local
+            VariablePatch varPatch = new(tempVariable.VariableName, pushInstanceType, VariableType.Array, false);
+            context.Emit(Opcode.Push, varPatch, DataType.Variable);
+            context.PushDataType(DataType.Variable);
         }
     }
 
